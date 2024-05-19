@@ -1,0 +1,61 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <MQ135.h>
+
+#define MQ135_PIN A6
+#define R0 1000.0
+
+String c;
+int a;
+MQ135 gasSensor = MQ135(MQ135_PIN);
+
+LiquidCrystal_I2C lcd(0x27, 16, 2); // Set the LCD address to 0x27 for a 16 chars and 2 line display
+
+void setup() {
+  Serial.begin(9600);
+  lcd.init();                      // Initialize the LCD
+  lcd.backlight();                 // Turn on the backlight
+}
+
+void loop() {
+  aqi();
+  int co2Percentage = (a / 4);
+  int nh3Percentage = (a / 8);
+  int lpgPercentage = (a / 6);
+  lcd.clear(); // Clear the display
+  lcd.print("AQ: ");
+  lcd.print(c);
+  lcd.setCursor(9, 0); // Set cursor to second line, first position
+  lcd.print("C: ");
+  lcd.print(co2Percentage);
+  lcd.print("%");
+  lcd.setCursor(0, 1); // Set cursor to first line, first position
+  lcd.print("N: ");
+  lcd.print(nh3Percentage);
+  lcd.print("%");
+
+  lcd.setCursor(9, 1); // Set cursor to second line, first position
+  lcd.print("A: ");
+  lcd.print(lpgPercentage);
+  lcd.print("%");
+
+  delay(2000); // Delay for 2 seconds
+}
+
+void aqi(){
+ float airQuality = analogRead(A6);
+
+  // Convert air quality to percentage scale
+  float airQualityPercentage = map(airQuality, 0, 1023, 0, 100);
+  airQualityPercentage = constrain(airQualityPercentage, 0, 100);
+  a = airQualityPercentage;
+  if (airQualityPercentage < 40){
+    c = "Good";
+  }
+  else if(airQualityPercentage >= 40 && airQualityPercentage <60){
+    c = "Poor";
+  }
+  else{
+    c = "Toxic";
+  }
+}
